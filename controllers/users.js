@@ -53,20 +53,30 @@ const updateUserInfo = (req, res) => {
       } else if (err.name === 'ValidationError') {
         res.status(400).send({ message: invalidDataMsg });
       } else {
-        res.status(500).send({ message: err.name });
+        res.status(500).send({ message: intServerErrorMsg });
       }
     });
 };
 
 const updateUserAvatar = (req, res) => {
   const { avatar } = req.body;
+  if (!avatar) {
+    res.status(400).send({ message: invalidDataMsg });
+    return;
+  }
   User.findByIdAndUpdate(
     req.user._id,
     { avatar },
     { new: true, runValidators: true },
   )
     .then((user) => res.status(200).send({ data: user }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(404).send({ message: userNotFoundMsg });
+      } else {
+        res.status(500).send({ message: intServerErrorMsg });
+      }
+    });
 };
 
 module.exports = {
