@@ -64,7 +64,7 @@ const updateUserAvatar = (req, res) => {
     req.user._id,
     { avatar },
     { new: true, runValidators: true },
-  ).orFail(() => { console.log('Привет, мир!'); })
+  )
     .then((user) => res.status(200).send({ data: user }))
     .catch((err) => res.status(500).send({ message: err.message }));
 };
