@@ -1,22 +1,42 @@
 const User = require('../models/user');
 
+const invalidDataMsg = 'Переданы некорректные данные пользователя.';
+const userNotFoundMsg = 'Пользователь не найден.';
+const intServerErrorMsg = 'Внутренняя ошибка сервера.';
+
 const getUsers = (req, res) => {
   User.find({})
     .then((users) => res.status(200).send({ data: users }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => res.status(500).send({
+      message: intServerErrorMsg,
+      err: err.message,
+      stack: err.stack,
+    }));
 };
 
 const getUser = (req, res) => {
   User.findById(req.params.userId)
     .then((user) => res.status(200).send({ data: user }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(404).send({ message: userNotFoundMsg });
+      } else {
+        res.status(500).send({ message: intServerErrorMsg });
+      }
+    });
 };
 
 const createUser = (req, res) => {
   const { name, about, avatar } = req.body;
   User.create({ name, about, avatar })
     .then((user) => res.status(201).send({ data: user }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(400).send({ message: invalidDataMsg });
+      } else {
+        res.status(500).send({ message: intServerErrorMsg });
+      }
+    });
 };
 
 const updateUserInfo = (req, res) => {
@@ -27,7 +47,15 @@ const updateUserInfo = (req, res) => {
     { new: true, runValidators: true },
   )
     .then((user) => res.status(200).send({ data: user }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(404).send({ message: userNotFoundMsg });
+      } else if (err.name === 'ValidationError') {
+        res.status(400).send({ message: invalidDataMsg });
+      } else {
+        res.status(500).send({ message: err.name });
+      }
+    });
 };
 
 const updateUserAvatar = (req, res) => {
@@ -36,7 +64,7 @@ const updateUserAvatar = (req, res) => {
     req.user._id,
     { avatar },
     { new: true, runValidators: true },
-  )
+  ).orFail(() => { console.log('Привет, мир!'); })
     .then((user) => res.status(200).send({ data: user }))
     .catch((err) => res.status(500).send({ message: err.message }));
 };

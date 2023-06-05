@@ -1,5 +1,9 @@
 const Card = require('../models/card');
 
+// const invalidDataMsg = { message: 'Переданы некорректные данные карточки.' };
+// const cardNotFoundMsg = { message: 'Карточка не найдена.' };
+// const intServerErrorMsg = { message: 'Внутренняя ошибка сервера.' };
+
 const getCards = (req, res) => {
   Card.find({})
     .then((cards) => res.status(200).send({ data: cards }))
