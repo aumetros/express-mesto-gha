@@ -19,7 +19,7 @@ app.use((req, res, next) => {
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
-app.patch('*', (req, res) => {
+app.use('*', (req, res) => {
   res.send({ message: 'Страница не найдена.' }, 404);
 });
 

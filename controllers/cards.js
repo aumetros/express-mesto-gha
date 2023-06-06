@@ -6,6 +6,10 @@ const invalidDataMsg = 'Переданы некорректные данные �
 const cardNotFoundMsg = 'Карточка не найдена.';
 const intServerErrorMsg = 'Внутренняя ошибка сервера.';
 
+const BAD_REQUEST = 400;
+const NOT_FOUND = 404;
+const INT_SERVER_ERROR = 500;
+
 const getCards = (req, res) => {
   Card.find({})
     .then((cards) => res.status(200).send({ data: cards }))
@@ -22,16 +26,16 @@ const createCard = (req, res) => {
     .then((card) => res.status(201).send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(400).send({ message: invalidDataMsg });
+        res.status(BAD_REQUEST).send({ message: invalidDataMsg });
       } else {
-        res.status(500).send({ message: intServerErrorMsg });
+        res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
       }
     });
 };
 
 const deleteCard = (req, res) => {
   if (!ObjectID.isValid(req.params.cardId)) {
-    res.status(400).send({ message: invalidDataMsg });
+    res.status(BAD_REQUEST).send({ message: invalidDataMsg });
     return;
   }
   Card.findByIdAndRemove(req.params.cardId)
@@ -39,16 +43,16 @@ const deleteCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.message === cardNotFoundMsg) {
-        res.status(404).send({ message: cardNotFoundMsg });
+        res.status(NOT_FOUND).send({ message: cardNotFoundMsg });
       } else {
-        res.status(500).send({ message: intServerErrorMsg });
+        res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
       }
     });
 };
 
 const likeCard = (req, res) => {
   if (!ObjectID.isValid(req.params.cardId)) {
-    res.status(400).send({ message: invalidDataMsg });
+    res.status(BAD_REQUEST).send({ message: invalidDataMsg });
     return;
   }
   Card.findByIdAndUpdate(
@@ -60,16 +64,16 @@ const likeCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.message === cardNotFoundMsg) {
-        res.status(404).send({ message: cardNotFoundMsg });
+        res.status(NOT_FOUND).send({ message: cardNotFoundMsg });
       } else {
-        res.status(500).send({ message: intServerErrorMsg });
+        res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
       }
     });
 };
 
 const dislikeCard = (req, res) => {
   if (!ObjectID.isValid(req.params.cardId)) {
-    res.status(400).send({ message: invalidDataMsg });
+    res.status(BAD_REQUEST).send({ message: invalidDataMsg });
     return;
   }
   Card.findByIdAndUpdate(
@@ -81,9 +85,9 @@ const dislikeCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.message === cardNotFoundMsg) {
-        res.status(404).send({ message: cardNotFoundMsg });
+        res.status(NOT_FOUND).send({ message: cardNotFoundMsg });
       } else {
-        res.status(500).send({ message: intServerErrorMsg });
+        res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
       }
     });
 };
