@@ -1,5 +1,7 @@
+const mongoose = require('mongoose');
 const Card = require('../models/card');
 
+const ObjectID = mongoose.Types.ObjectId;
 const invalidDataMsg = 'Переданы некорректные данные карточки.';
 const cardNotFoundMsg = 'Карточка не найдена.';
 const intServerErrorMsg = 'Внутренняя ошибка сервера.';
@@ -28,10 +30,15 @@ const createCard = (req, res) => {
 };
 
 const deleteCard = (req, res) => {
+  if (!ObjectID.isValid(req.params.cardId)) {
+    res.status(400).send({ message: invalidDataMsg });
+    return;
+  }
   Card.findByIdAndRemove(req.params.cardId)
+    .orFail(() => new Error(cardNotFoundMsg))
     .then((card) => res.send({ data: card }))
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.message === cardNotFoundMsg) {
         res.status(404).send({ message: cardNotFoundMsg });
       } else {
         res.status(500).send({ message: intServerErrorMsg });
@@ -40,14 +47,19 @@ const deleteCard = (req, res) => {
 };
 
 const likeCard = (req, res) => {
+  if (!ObjectID.isValid(req.params.cardId)) {
+    res.status(400).send({ message: invalidDataMsg });
+    return;
+  }
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
+    .orFail(() => new Error(cardNotFoundMsg))
     .then((card) => res.send({ data: card }))
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.message === cardNotFoundMsg) {
         res.status(404).send({ message: cardNotFoundMsg });
       } else {
         res.status(500).send({ message: intServerErrorMsg });
