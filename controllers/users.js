@@ -13,10 +13,8 @@ const INT_SERVER_ERROR = 500;
 const getUsers = (req, res) => {
   User.find({})
     .then((users) => res.status(200).send({ data: users }))
-    .catch((err) => res.status(INT_SERVER_ERROR).send({
+    .catch(() => res.status(INT_SERVER_ERROR).send({
       message: intServerErrorMsg,
-      err: err.message,
-      stack: err.stack,
     }));
 };
 

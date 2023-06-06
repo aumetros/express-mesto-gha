@@ -13,10 +13,8 @@ const INT_SERVER_ERROR = 500;
 const getCards = (req, res) => {
   Card.find({})
     .then((cards) => res.status(200).send({ data: cards }))
-    .catch((err) => res.status(500).send({
+    .catch(() => res.status(500).send({
       message: intServerErrorMsg,
-      err: err.message,
-      stack: err.stack,
     }));
 };
 
