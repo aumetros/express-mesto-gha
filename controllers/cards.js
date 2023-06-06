@@ -68,14 +68,19 @@ const likeCard = (req, res) => {
 };
 
 const dislikeCard = (req, res) => {
+  if (!ObjectID.isValid(req.params.cardId)) {
+    res.status(400).send({ message: invalidDataMsg });
+    return;
+  }
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
     { new: true },
   )
+    .orFail(() => new Error(cardNotFoundMsg))
     .then((card) => res.send({ data: card }))
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.message === cardNotFoundMsg) {
         res.status(404).send({ message: cardNotFoundMsg });
       } else {
         res.status(500).send({ message: intServerErrorMsg });
