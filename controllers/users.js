@@ -12,10 +12,8 @@ const INT_SERVER_ERROR = 500;
 
 const getUsers = (req, res) => {
   User.find({})
-    .then((users) => res.status(200).send({ data: users }))
-    .catch(() => res.status(INT_SERVER_ERROR).send({
-      message: intServerErrorMsg,
-    }));
+    .then((users) => res.send({ data: users }))
+    .catch(() => res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg }));
 };
 
 const getUser = (req, res) => {
@@ -25,7 +23,7 @@ const getUser = (req, res) => {
   }
   User.findById(req.params.userId)
     .orFail(() => new Error(userNotFoundMsg))
-    .then((user) => res.status(200).send({ data: user }))
+    .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.message === userNotFoundMsg) {
         res.status(NOT_FOUND).send({ message: userNotFoundMsg });
@@ -50,14 +48,19 @@ const createUser = (req, res) => {
 
 const updateUserInfo = (req, res) => {
   const { name, about } = req.body;
+  if (!ObjectID.isValid(req.user._id)) {
+    res.status(BAD_REQUEST).send({ message: invalidDataMsg });
+    return;
+  }
   User.findByIdAndUpdate(
     req.user._id,
     { name, about },
     { new: true, runValidators: true },
   )
-    .then((user) => res.status(200).send({ data: user }))
+    .orFail(() => new Error(userNotFoundMsg))
+    .then((user) => res.send({ data: user }))
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.message === userNotFoundMsg) {
         res.status(NOT_FOUND).send({ message: userNotFoundMsg });
       } else if (err.name === 'ValidationError') {
         res.status(BAD_REQUEST).send({ message: invalidDataMsg });
@@ -69,7 +72,7 @@ const updateUserInfo = (req, res) => {
 
 const updateUserAvatar = (req, res) => {
   const { avatar } = req.body;
-  if (!avatar) {
+  if (!ObjectID.isValid(req.user._id) || !avatar) {
     res.status(BAD_REQUEST).send({ message: invalidDataMsg });
     return;
   }
@@ -78,9 +81,10 @@ const updateUserAvatar = (req, res) => {
     { avatar },
     { new: true, runValidators: true },
   )
-    .then((user) => res.status(200).send({ data: user }))
+    .orFail(() => new Error(userNotFoundMsg))
+    .then((user) => res.send({ data: user }))
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.message === userNotFoundMsg) {
         res.status(NOT_FOUND).send({ message: userNotFoundMsg });
       } else {
         res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
