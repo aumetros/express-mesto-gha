@@ -1,5 +1,7 @@
+const mongoose = require('mongoose');
 const User = require('../models/user');
 
+const ObjectID = mongoose.Types.ObjectId;
 const invalidDataMsg = 'Переданы некорректные данные пользователя.';
 const userNotFoundMsg = 'Пользователь не найден.';
 const intServerErrorMsg = 'Внутренняя ошибка сервера.';
@@ -15,10 +17,15 @@ const getUsers = (req, res) => {
 };
 
 const getUser = (req, res) => {
+  if (!ObjectID.isValid(req.params.userId)) {
+    res.status(400).send({ message: invalidDataMsg });
+    return;
+  }
   User.findById(req.params.userId)
+    .orFail(() => new Error(userNotFoundMsg))
     .then((user) => res.status(200).send({ data: user }))
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.message === userNotFoundMsg) {
         res.status(404).send({ message: userNotFoundMsg });
       } else {
         res.status(500).send({ message: intServerErrorMsg });
