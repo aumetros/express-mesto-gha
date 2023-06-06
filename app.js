@@ -19,6 +19,10 @@ app.use((req, res, next) => {
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
+app.patch('*', (req, res) => {
+  res.send({ message: 'Страница не найдена.' }, 404);
+});
+
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log('Сервер запущен на порту 3000');
