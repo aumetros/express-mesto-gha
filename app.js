@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const router = require('./routes');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -16,12 +17,12 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/users', require('./routes/users'));
-app.use('/cards', require('./routes/cards'));
+app.use(router);
+// app.use('/cards', require('./routes/cards'));
 
-app.use('*', (req, res) => {
-  res.send({ message: 'Страница не найдена.' }, 404);
-});
+// app.use('*', (req, res) => {
+//   res.send({ message: 'Страница не найдена.' }, 404);
+// });
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
