@@ -125,8 +125,8 @@ const login = (req, res) => {
             res.cookie('jwt', token, {
               maxAge: 3600000,
               httpOnly: true,
-            });
-            // res.send({ token });
+            })
+              .end();
           } else {
             return Promise.reject(new Error(invalidLoginData));
           }
