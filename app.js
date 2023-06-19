@@ -18,11 +18,6 @@ app.use((req, res, next) => {
 });
 
 app.use(router);
-// app.use('/cards', require('./routes/cards'));
-
-// app.use('*', (req, res) => {
-//   res.send({ message: 'Страница не найдена.' }, 404);
-// });
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
