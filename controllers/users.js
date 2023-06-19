@@ -7,8 +7,10 @@ const ObjectID = mongoose.Types.ObjectId;
 const invalidDataMsg = 'Переданы некорректные данные пользователя.';
 const userNotFoundMsg = 'Пользователь не найден.';
 const intServerErrorMsg = 'Внутренняя ошибка сервера.';
+const invalidLoginData = 'Неправильные почта или пароль.';
 
 const BAD_REQUEST = 400;
+const UNAUTHORIZED = 401;
 const NOT_FOUND = 404;
 const INT_SERVER_ERROR = 500;
 
@@ -104,10 +106,33 @@ const updateUserAvatar = (req, res) => {
     });
 };
 
+const login = (req, res) => {
+  const { email, password } = req.body;
+
+  User.findOne({ email })
+    .then((user) => {
+      if (!user) {
+        return Promise.reject(new Error(invalidLoginData));
+      }
+      return bcrypt.compare(password, user.password);
+    })
+    // eslint-disable-next-line consistent-return
+    .then((matched) => {
+      if (!matched) {
+        return Promise.reject(new Error(invalidLoginData));
+      }
+      res.send({ message: 'Всё верно!' });
+    })
+    .catch(() => {
+      res.status(UNAUTHORIZED).send({ message: invalidLoginData });
+    });
+};
+
 module.exports = {
   getUsers,
   getUser,
   createUser,
   updateUserInfo,
   updateUserAvatar,
+  login,
 };
