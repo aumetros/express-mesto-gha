@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 const ObjectID = mongoose.Types.ObjectId;
@@ -110,18 +111,25 @@ const login = (req, res) => {
   const { email, password } = req.body;
 
   User.findOne({ email })
+    .orFail(() => new Error(invalidLoginData))
     .then((user) => {
-      if (!user) {
-        return Promise.reject(new Error(invalidLoginData));
-      }
-      return bcrypt.compare(password, user.password);
-    })
-    // eslint-disable-next-line consistent-return
-    .then((matched) => {
-      if (!matched) {
-        return Promise.reject(new Error(invalidLoginData));
-      }
-      res.send({ message: 'Всё верно!' });
+      bcrypt.compare(password, user.password)
+        // eslint-disable-next-line consistent-return
+        .then((matched) => {
+          if (matched) {
+            const token = jwt.sign(
+              { _id: user._id },
+              'secret-key',
+              { expiresIn: '7d' },
+            );
+            res.send({ token });
+          } else {
+            return Promise.reject(new Error(invalidLoginData));
+          }
+        })
+        .catch(() => {
+          res.status(UNAUTHORIZED).send({ message: invalidLoginData });
+        });
     })
     .catch(() => {
       res.status(UNAUTHORIZED).send({ message: invalidLoginData });
