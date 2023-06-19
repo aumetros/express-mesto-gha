@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const validator = require('validator');
 const User = require('../models/user');
 
 const ObjectID = mongoose.Types.ObjectId;
@@ -37,17 +38,22 @@ const createUser = (req, res) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
-  User.create({
-    name, about, avatar, email, password,
-  })
-    .then((user) => res.status(201).send({ data: user }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(BAD_REQUEST).send({ message: invalidDataMsg });
-      } else {
-        res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
-      }
-    });
+
+  if (validator.isEmail(email)) {
+    User.create({
+      name, about, avatar, email, password,
+    })
+      .then((user) => res.status(201).send({ data: user }))
+      .catch((err) => {
+        if (err.name === 'ValidationError') {
+          res.status(BAD_REQUEST).send({ message: invalidDataMsg });
+        } else {
+          res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
+        }
+      });
+  } else {
+    res.status(BAD_REQUEST).send({ message: invalidDataMsg });
+  }
 };
 
 const updateUserInfo = (req, res) => {
