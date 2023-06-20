@@ -5,6 +5,9 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 const ObjectID = mongoose.Types.ObjectId;
+
+const { NotFoundError } = require('../utils/errors');
+
 const invalidDataMsg = 'Переданы некорректные данные пользователя.';
 const userNotFoundMsg = 'Пользователь не найден.';
 const intServerErrorMsg = 'Внутренняя ошибка сервера.';
@@ -126,6 +129,10 @@ const getCurrentUser = (req, res) => {
 
 const login = (req, res) => {
   const { email, password } = req.body;
+
+  if (!email || !password) {
+    throw new NotFoundError('А всё работает!))');
+  }
 
   User.findOne({ email })
     .orFail(() => new Error(invalidLoginData))
