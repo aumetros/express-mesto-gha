@@ -6,45 +6,50 @@ const User = require('../models/user');
 
 const ObjectID = mongoose.Types.ObjectId;
 
-const { NotFoundError } = require('../utils/errors');
+const { BadRequestError, AuthorizationError, NotFoundError, ExistEmailError } = require('../utils/errors');
 
 const invalidDataMsg = 'Переданы некорректные данные пользователя.';
 const userNotFoundMsg = 'Пользователь не найден.';
 const intServerErrorMsg = 'Внутренняя ошибка сервера.';
 const invalidLoginData = 'Неправильные почта или пароль.';
+const existEmailMsg = 'Пользователь с таким email уже зарегистрирован.';
 
 const BAD_REQUEST = 400;
 const UNAUTHORIZED = 401;
 const NOT_FOUND = 404;
 const INT_SERVER_ERROR = 500;
 
-const getUsers = (req, res) => {
+const getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch(() => res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg }));
+    .catch(next);
 };
 
-const getUser = (req, res) => {
+const getUser = (req, res, next) => {
   if (!ObjectID.isValid(req.params.userId)) {
-    res.status(BAD_REQUEST).send({ message: invalidDataMsg });
-    return;
+    throw new BadRequestError(invalidDataMsg);
   }
   User.findById(req.params.userId)
     .orFail(() => new Error(userNotFoundMsg))
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.message === userNotFoundMsg) {
+        next(new NotFoundError(userNotFoundMsg));
         res.status(NOT_FOUND).send({ message: userNotFoundMsg });
       } else {
-        res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
+        next();
       }
     });
 };
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
+
+  if (!email || !password) {
+    throw new BadRequestError(invalidDataMsg);
+  }
 
   if (validator.isEmail(email)) {
     bcrypt.hash(password, 10)
@@ -54,13 +59,18 @@ const createUser = (req, res) => {
       .then((user) => res.status(201).send({ data: user }))
       .catch((err) => {
         if (err.name === 'ValidationError') {
-          res.status(BAD_REQUEST).send({ message: invalidDataMsg });
+          next(new BadRequestError(invalidDataMsg));
+          // res.status(BAD_REQUEST).send({ message: invalidDataMsg });
+        } else if (err.code === 11000) {
+          next(new ExistEmailError(existEmailMsg));
         } else {
-          res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
+          next();
+          // res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
         }
       });
   } else {
-    res.status(BAD_REQUEST).send({ message: invalidDataMsg });
+    next(new BadRequestError(invalidDataMsg));
+    // res.status(BAD_REQUEST).send({ message: invalidDataMsg });
   }
 };
 
@@ -131,7 +141,7 @@ const login = (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    throw new NotFoundError('А всё работает!))');
+    throw new BadRequestError(invalidDataMsg);
   }
 
   User.findOne({ email })
