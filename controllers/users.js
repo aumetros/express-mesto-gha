@@ -6,18 +6,17 @@ const User = require('../models/user');
 
 const ObjectID = mongoose.Types.ObjectId;
 
-const { BadRequestError, AuthorizationError, NotFoundError, ExistEmailError } = require('../utils/errors');
+const { BadRequestError, NotFoundError, ExistEmailError } = require('../utils/errors');
 
 const invalidDataMsg = 'Переданы некорректные данные пользователя.';
 const userNotFoundMsg = 'Пользователь не найден.';
-const intServerErrorMsg = 'Внутренняя ошибка сервера.';
+// const intServerErrorMsg = 'Внутренняя ошибка сервера.';
 const invalidLoginData = 'Неправильные почта или пароль.';
 const existEmailMsg = 'Пользователь с таким email уже зарегистрирован.';
 
-const BAD_REQUEST = 400;
-const UNAUTHORIZED = 401;
-const NOT_FOUND = 404;
-const INT_SERVER_ERROR = 500;
+// const BAD_REQUEST = 400;
+// const NOT_FOUND = 404;
+// const INT_SERVER_ERROR = 500;
 
 const getUsers = (req, res, next) => {
   User.find({})
@@ -35,7 +34,7 @@ const getUser = (req, res, next) => {
     .catch((err) => {
       if (err.message === userNotFoundMsg) {
         next(new NotFoundError(userNotFoundMsg));
-        res.status(NOT_FOUND).send({ message: userNotFoundMsg });
+        // res.status(NOT_FOUND).send({ message: userNotFoundMsg });
       } else {
         next();
       }
@@ -74,11 +73,12 @@ const createUser = (req, res, next) => {
   }
 };
 
-const updateUserInfo = (req, res) => {
+const updateUserInfo = (req, res, next) => {
   const { name, about } = req.body;
   if (!ObjectID.isValid(req.user._id)) {
-    res.status(BAD_REQUEST).send({ message: invalidDataMsg });
-    return;
+    throw new BadRequestError(invalidDataMsg);
+    // res.status(BAD_REQUEST).send({ message: invalidDataMsg });
+    // return;
   }
   User.findByIdAndUpdate(
     req.user._id,
@@ -89,20 +89,24 @@ const updateUserInfo = (req, res) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.message === userNotFoundMsg) {
-        res.status(NOT_FOUND).send({ message: userNotFoundMsg });
+        next(new NotFoundError(userNotFoundMsg));
+        // res.status(NOT_FOUND).send({ message: userNotFoundMsg });
       } else if (err.name === 'ValidationError') {
-        res.status(BAD_REQUEST).send({ message: invalidDataMsg });
+        next(new NotFoundError(userNotFoundMsg));
+        // res.status(BAD_REQUEST).send({ message: invalidDataMsg });
       } else {
-        res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
+        next();
+        // res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
       }
     });
 };
 
-const updateUserAvatar = (req, res) => {
+const updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
   if (!ObjectID.isValid(req.user._id) || !avatar) {
-    res.status(BAD_REQUEST).send({ message: invalidDataMsg });
-    return;
+    throw new BadRequestError(invalidDataMsg);
+    // res.status(BAD_REQUEST).send({ message: invalidDataMsg });
+    // return;
   }
   User.findByIdAndUpdate(
     req.user._id,
@@ -113,31 +117,36 @@ const updateUserAvatar = (req, res) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.message === userNotFoundMsg) {
-        res.status(NOT_FOUND).send({ message: userNotFoundMsg });
+        next(new NotFoundError(userNotFoundMsg));
+        // res.status(NOT_FOUND).send({ message: userNotFoundMsg });
       } else {
-        res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
+        next();
+        // res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
       }
     });
 };
 
-const getCurrentUser = (req, res) => {
+const getCurrentUser = (req, res, next) => {
   if (!ObjectID.isValid(req.user._id)) {
-    res.status(BAD_REQUEST).send({ message: invalidDataMsg });
-    return;
+    throw new BadRequestError(invalidDataMsg);
+    // res.status(BAD_REQUEST).send({ message: invalidDataMsg });
+    // return;
   }
   User.findById(req.user._id)
     .orFail(() => new Error(userNotFoundMsg))
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.message === userNotFoundMsg) {
-        res.status(NOT_FOUND).send({ message: userNotFoundMsg });
+        next(new NotFoundError(userNotFoundMsg));
+        // res.status(NOT_FOUND).send({ message: userNotFoundMsg });
       } else {
-        res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
+        next();
+        // res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
       }
     });
 };
 
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -145,9 +154,11 @@ const login = (req, res) => {
   }
 
   User.findOne({ email })
-    .orFail(() => new Error(invalidLoginData))
     .select('+password')
     .then((user) => {
+      if (!user) {
+        throw new BadRequestError(invalidLoginData);
+      }
       bcrypt.compare(password, user.password)
         // eslint-disable-next-line consistent-return
         .then((matched) => {
@@ -163,15 +174,18 @@ const login = (req, res) => {
             })
               .end();
           } else {
-            return Promise.reject(new Error(invalidLoginData));
+            throw new BadRequestError(invalidLoginData);
+            // return Promise.reject(new Error(invalidLoginData));
           }
         })
         .catch(() => {
-          res.status(UNAUTHORIZED).send({ message: invalidLoginData });
+          next(new BadRequestError(invalidLoginData));
+          // res.status(UNAUTHORIZED).send({ message: invalidLoginData });
         });
     })
     .catch(() => {
-      res.status(UNAUTHORIZED).send({ message: invalidLoginData });
+      next(new BadRequestError(invalidLoginData));
+      // res.status(UNAUTHORIZED).send({ message: invalidLoginData });
     });
 };
 
