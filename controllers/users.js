@@ -114,12 +114,7 @@ const getCurrentUser = (req, res) => {
   }
   User.findById(req.user._id)
     .orFail(() => new Error(userNotFoundMsg))
-    .then((user) => res.send({
-      name: user.name,
-      about: user.about,
-      avatar: user.avatar,
-      email: user.email,
-    }))
+    .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.message === userNotFoundMsg) {
         res.status(NOT_FOUND).send({ message: userNotFoundMsg });
@@ -134,6 +129,7 @@ const login = (req, res) => {
 
   User.findOne({ email })
     .orFail(() => new Error(invalidLoginData))
+    .select('+password')
     .then((user) => {
       bcrypt.compare(password, user.password)
         // eslint-disable-next-line consistent-return
