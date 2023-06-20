@@ -1,6 +1,10 @@
 {
   "extends": "airbnb-base",
   "rules": {
-    "no-underscore-dangle": ["error", { "allow": ["_id"] }]
+    "no-underscore-dangle": ["error", { "allow": ["_id"] }],
+    "max-classes-per-file": [
+      "error",
+      { "ignoreExpressions": true, "max": 10 }
+  ]
   }
 }
