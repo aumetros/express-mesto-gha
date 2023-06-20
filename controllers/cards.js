@@ -2,39 +2,45 @@ const mongoose = require('mongoose');
 const Card = require('../models/card');
 
 const ObjectID = mongoose.Types.ObjectId;
+
+const { BadRequestError, NotFoundError, ForbiddenError } = require('../utils/errors');
+
 const invalidDataMsg = 'Переданы некорректные данные карточки.';
 const cardNotFoundMsg = 'Карточка не найдена.';
-const intServerErrorMsg = 'Внутренняя ошибка сервера.';
+// const intServerErrorMsg = 'Внутренняя ошибка сервера.';
 const forbiddenErrorMsg = 'У вас нет прав на этой действие.';
 
-const BAD_REQUEST = 400;
-const FORBIDDEN = 403;
-const NOT_FOUND = 404;
-const INT_SERVER_ERROR = 500;
+// const BAD_REQUEST = 400;
+// const FORBIDDEN = 403;
+// const NOT_FOUND = 404;
+// const INT_SERVER_ERROR = 500;
 
-const getCards = (req, res) => {
+const getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => res.send({ data: cards }))
-    .catch(() => res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg }));
+    .catch(next);
 };
 
-const createCard = (req, res) => {
+const createCard = (req, res, next) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.status(201).send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(BAD_REQUEST).send({ message: invalidDataMsg });
+        next(new BadRequestError(invalidDataMsg));
+        // res.status(BAD_REQUEST).send({ message: invalidDataMsg });
       } else {
-        res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
+        next();
+        // res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
       }
     });
 };
 
-const deleteCard = (req, res) => {
+const deleteCard = (req, res, next) => {
   if (!ObjectID.isValid(req.params.cardId)) {
-    res.status(BAD_REQUEST).send({ message: invalidDataMsg });
-    return;
+    throw new BadRequestError(invalidDataMsg);
+    // res.status(BAD_REQUEST).send({ message: invalidDataMsg });
+    // return;
   }
   Card.findById(req.params.cardId)
     .orFail(() => new Error(cardNotFoundMsg))
@@ -42,26 +48,28 @@ const deleteCard = (req, res) => {
       if (card.owner === req.user._id) {
         Card.findByIdAndRemove(card._id)
           .then((cardToDelete) => res.send({ data: cardToDelete }))
-          .catch(() => {
-            res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
-          });
+          .catch(next);
       } else {
-        res.status(FORBIDDEN).send({ message: forbiddenErrorMsg });
+        throw new ForbiddenError(forbiddenErrorMsg);
+        // res.status(FORBIDDEN).send({ message: forbiddenErrorMsg });
       }
     })
     .catch((err) => {
       if (err.message === cardNotFoundMsg) {
-        res.status(NOT_FOUND).send({ message: cardNotFoundMsg });
+        next(new NotFoundError(cardNotFoundMsg));
+        // res.status(NOT_FOUND).send({ message: cardNotFoundMsg });
       } else {
-        res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
+        next();
+        // res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
       }
     });
 };
 
-const likeCard = (req, res) => {
+const likeCard = (req, res, next) => {
   if (!ObjectID.isValid(req.params.cardId)) {
-    res.status(BAD_REQUEST).send({ message: invalidDataMsg });
-    return;
+    throw new BadRequestError(invalidDataMsg);
+    // res.status(BAD_REQUEST).send({ message: invalidDataMsg });
+    // return;
   }
   Card.findByIdAndUpdate(
     req.params.cardId,
@@ -72,17 +80,20 @@ const likeCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.message === cardNotFoundMsg) {
-        res.status(NOT_FOUND).send({ message: cardNotFoundMsg });
+        next(new NotFoundError(cardNotFoundMsg));
+        // res.status(NOT_FOUND).send({ message: cardNotFoundMsg });
       } else {
-        res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
+        next();
+        // res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
       }
     });
 };
 
-const dislikeCard = (req, res) => {
+const dislikeCard = (req, res, next) => {
   if (!ObjectID.isValid(req.params.cardId)) {
-    res.status(BAD_REQUEST).send({ message: invalidDataMsg });
-    return;
+    throw new BadRequestError(invalidDataMsg);
+    // res.status(BAD_REQUEST).send({ message: invalidDataMsg });
+    // return;
   }
   Card.findByIdAndUpdate(
     req.params.cardId,
@@ -93,9 +104,11 @@ const dislikeCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.message === cardNotFoundMsg) {
-        res.status(NOT_FOUND).send({ message: cardNotFoundMsg });
+        next(new NotFoundError(cardNotFoundMsg));
+        // res.status(NOT_FOUND).send({ message: cardNotFoundMsg });
       } else {
-        res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
+        next();
+        // res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
       }
     });
 };
