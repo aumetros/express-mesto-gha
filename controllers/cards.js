@@ -35,13 +35,11 @@ const deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId)
     .orFail(() => new Error(cardNotFoundMsg))
     .then((card) => {
-      if (card.owner === req.user._id) {
-        Card.findByIdAndRemove(req.params.cardId)
-          .then((cardToDelete) => res.send({ data: cardToDelete }))
-          .catch(next);
-      } else {
-        throw new ForbiddenError(forbiddenErrorMsg);
+      if (card.owner.equals(req.user._id)) {
+        card.deleteOne();
+        return res.send(card);
       }
+      throw new ForbiddenError(forbiddenErrorMsg);
     })
     .catch((err) => {
       if (err.message === cardNotFoundMsg) {
