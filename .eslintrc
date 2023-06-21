@@ -5,6 +5,7 @@
     "max-classes-per-file": [
       "error",
       { "ignoreExpressions": true, "max": 10 }
-  ]
+  ],
+    "no-useless-escape": [0]
   }
 }

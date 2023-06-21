@@ -14,7 +14,6 @@ const cardSchema = new mongoose.Schema({
     required: true,
     validate: {
       validator: function (v) {
-        // eslint-disable-next-line no-useless-escape
         return /https*:\/\/[a-zA-Z0-9\-\._~:\/?#\[\]@!$&'\(\)*\+,;=]+#*/.test(v);
       },
     },
