@@ -168,11 +168,12 @@ const login = (req, res, next) => {
               'secret-key',
               { expiresIn: '7d' },
             );
-            res.cookie('jwt', token, {
-              maxAge: 3600000,
-              httpOnly: true,
-            })
-              .end();
+            // res.cookie('jwt', token, {
+            //   maxAge: 3600000,
+            //   httpOnly: true,
+            // })
+              // .end();
+              res.send({ token });
           } else {
             throw new BadRequestError(invalidLoginData);
             // return Promise.reject(new Error(invalidLoginData));
