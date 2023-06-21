@@ -139,9 +139,9 @@ const login = (req, res, next) => {
   User.findOne({ email })
     .select('+password')
     .then((user) => {
-      if (!user) {
-        throw new AuthorizationError(invalidLoginData);
-      }
+      // if (!user) {
+      //   throw new BadRequestError(invalidLoginData);
+      // }
       bcrypt.compare(password, user.password)
         // eslint-disable-next-line consistent-return
         .then((matched) => {
@@ -161,7 +161,7 @@ const login = (req, res, next) => {
         });
     })
     .catch(() => {
-      next(new BadRequestError(invalidLoginData));
+      next(new AuthorizationError(invalidLoginData));
     });
 };
 

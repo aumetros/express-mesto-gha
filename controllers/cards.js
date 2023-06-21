@@ -36,7 +36,7 @@ const deleteCard = (req, res, next) => {
     .orFail(() => new Error(cardNotFoundMsg))
     .then((card) => {
       if (card.owner === req.user._id) {
-        Card.findByIdAndRemove(card._id)
+        Card.findByIdAndRemove(req.params.cardId)
           .then((cardToDelete) => res.send({ data: cardToDelete }))
           .catch(next);
       } else {
