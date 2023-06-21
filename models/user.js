@@ -1,3 +1,6 @@
+/* eslint-disable func-names */
+/* eslint-disable space-before-function-paren */
+/* eslint-disable object-shorthand */
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
@@ -17,11 +20,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
-      validator(v) {
+      validator: function(v) {
         // eslint-disable-next-line no-useless-escape
         return /https*:\/\/[a-zA-Z0-9\-\._~:\/?#\[\]@!$&'\(\)*\+,;=]+#*/.test(v);
       },
-      message: 'Переданные данные не являются ссылкой',
     },
   },
   email: {
@@ -35,5 +37,11 @@ const userSchema = new mongoose.Schema({
     select: false,
   },
 });
+
+userSchema.methods.toJSON = function() {
+  const user = this.toObject();
+  delete user.password;
+  return user;
+};
 
 module.exports = mongoose.model('user', userSchema);

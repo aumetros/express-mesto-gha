@@ -1,3 +1,5 @@
+/* eslint-disable func-names */
+/* eslint-disable object-shorthand */
 const mongoose = require('mongoose');
 
 const cardSchema = new mongoose.Schema({
@@ -11,11 +13,10 @@ const cardSchema = new mongoose.Schema({
     type: String,
     required: true,
     validate: {
-      validator(v) {
+      validator: function (v) {
         // eslint-disable-next-line no-useless-escape
         return /https*:\/\/[a-zA-Z0-9\-\._~:\/?#\[\]@!$&'\(\)*\+,;=]+#*/.test(v);
       },
-      message: 'Переданные данные не являются ссылкой',
     },
   },
   owner: {
