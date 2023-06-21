@@ -45,7 +45,7 @@ const deleteCard = (req, res, next) => {
       if (err.message === cardNotFoundMsg) {
         next(new NotFoundError(cardNotFoundMsg));
       } else {
-        next();
+        next(new ForbiddenError(forbiddenErrorMsg));
       }
     });
 };
