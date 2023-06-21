@@ -173,7 +173,7 @@ const login = (req, res, next) => {
             //   httpOnly: true,
             // })
               // .end();
-              res.send({ token });
+            res.send({ token });
           } else {
             throw new BadRequestError(invalidLoginData);
             // return Promise.reject(new Error(invalidLoginData));

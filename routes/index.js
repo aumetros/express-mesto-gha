@@ -3,7 +3,13 @@ const { celebrate, Joi, errors } = require('celebrate');
 const auth = require('../middlewares/auth');
 const { login, createUser } = require('../controllers/users');
 
-router.post('/signin', login);
+router.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required(),
+  }),
+}), login);
+
 router.post('/signup', celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
