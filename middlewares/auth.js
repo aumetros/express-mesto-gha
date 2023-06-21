@@ -3,24 +3,23 @@ const { AuthorizationError } = require('../utils/errors');
 
 const handleAuthError = () => {
   throw new AuthorizationError('Необходима авторизация');
-  // res.status(401).send({ message: 'Необходима авторизация' });
 };
 
-// const extractBearerToken = (header) => header.replace('Bearer ', '');
+const extractBearerToken = (header) => header.replace('Bearer ', '');
 
 // eslint-disable-next-line consistent-return
 const auth = (req, res, next) => {
-  // const { authorization } = req.headers;
+  const { authorization } = req.headers;
 
-  // if (!authorization || !authorization.startsWith('Bearer ')) {
-  //   return handleAuthError();
-  // }
+  if (!authorization || !authorization.startsWith('Bearer ')) {
+    return handleAuthError();
+  }
 
-  // const token = extractBearerToken(authorization);
+  const token = extractBearerToken(authorization);
   let payload;
 
   try {
-    payload = jwt.verify('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NDkzMTgzODMyOTRkNjI3NzNiZjZhMTkiLCJpYXQiOjE2ODczNjE2MjgsImV4cCI6MTY4Nzk2NjQyOH0.Mm1ZuXrzBv7mVEvhWB1fkM-nz57Q_2Msk2LTd5SOqb4', 'secret-key');
+    payload = jwt.verify(token, 'secret-key');
   } catch (err) {
     return handleAuthError();
   }
