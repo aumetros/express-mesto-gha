@@ -45,10 +45,6 @@ const createUser = (req, res, next) => {
     name, about, avatar, email, password,
   } = req.body;
 
-  if (!email || !password) {
-    throw new BadRequestError(invalidDataMsg);
-  }
-
   if (validator.isEmail(email)) {
     bcrypt.hash(password, 10)
       .then((hash) => User.create({
@@ -132,16 +128,12 @@ const getCurrentUser = (req, res, next) => {
 const login = (req, res, next) => {
   const { email, password } = req.body;
 
-  if (!email || !password) {
-    throw new BadRequestError(invalidDataMsg);
-  }
-
   User.findOne({ email })
     .select('+password')
     .then((user) => {
-      // if (!user) {
-      //   throw new BadRequestError(invalidLoginData);
-      // }
+      if (!user) {
+        throw new BadRequestError(invalidLoginData);
+      }
       bcrypt.compare(password, user.password)
         // eslint-disable-next-line consistent-return
         .then((matched) => {
