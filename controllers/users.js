@@ -6,17 +6,17 @@ const User = require('../models/user');
 
 const ObjectID = mongoose.Types.ObjectId;
 
-const { BadRequestError, NotFoundError, ExistEmailError } = require('../utils/errors');
+const {
+  BadRequestError,
+  NotFoundError,
+  ExistEmailError,
+  AuthorizationError,
+} = require('../utils/errors');
 
 const invalidDataMsg = 'Переданы некорректные данные пользователя.';
 const userNotFoundMsg = 'Пользователь не найден.';
-// const intServerErrorMsg = 'Внутренняя ошибка сервера.';
 const invalidLoginData = 'Неправильные почта или пароль.';
 const existEmailMsg = 'Пользователь с таким email уже зарегистрирован.';
-
-// const BAD_REQUEST = 400;
-// const NOT_FOUND = 404;
-// const INT_SERVER_ERROR = 500;
 
 const getUsers = (req, res, next) => {
   User.find({})
@@ -34,7 +34,6 @@ const getUser = (req, res, next) => {
     .catch((err) => {
       if (err.message === userNotFoundMsg) {
         next(new NotFoundError(userNotFoundMsg));
-        // res.status(NOT_FOUND).send({ message: userNotFoundMsg });
       } else {
         next();
       }
@@ -59,17 +58,14 @@ const createUser = (req, res, next) => {
       .catch((err) => {
         if (err.name === 'ValidationError') {
           next(new BadRequestError(invalidDataMsg));
-          // res.status(BAD_REQUEST).send({ message: invalidDataMsg });
         } else if (err.code === 11000) {
           next(new ExistEmailError(existEmailMsg));
         } else {
           next();
-          // res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
         }
       });
   } else {
     next(new BadRequestError(invalidDataMsg));
-    // res.status(BAD_REQUEST).send({ message: invalidDataMsg });
   }
 };
 
@@ -77,8 +73,6 @@ const updateUserInfo = (req, res, next) => {
   const { name, about } = req.body;
   if (!ObjectID.isValid(req.user._id)) {
     throw new BadRequestError(invalidDataMsg);
-    // res.status(BAD_REQUEST).send({ message: invalidDataMsg });
-    // return;
   }
   User.findByIdAndUpdate(
     req.user._id,
@@ -90,13 +84,10 @@ const updateUserInfo = (req, res, next) => {
     .catch((err) => {
       if (err.message === userNotFoundMsg) {
         next(new NotFoundError(userNotFoundMsg));
-        // res.status(NOT_FOUND).send({ message: userNotFoundMsg });
       } else if (err.name === 'ValidationError') {
         next(new NotFoundError(userNotFoundMsg));
-        // res.status(BAD_REQUEST).send({ message: invalidDataMsg });
       } else {
         next();
-        // res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
       }
     });
 };
@@ -105,8 +96,6 @@ const updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
   if (!ObjectID.isValid(req.user._id) || !avatar) {
     throw new BadRequestError(invalidDataMsg);
-    // res.status(BAD_REQUEST).send({ message: invalidDataMsg });
-    // return;
   }
   User.findByIdAndUpdate(
     req.user._id,
@@ -118,10 +107,8 @@ const updateUserAvatar = (req, res, next) => {
     .catch((err) => {
       if (err.message === userNotFoundMsg) {
         next(new NotFoundError(userNotFoundMsg));
-        // res.status(NOT_FOUND).send({ message: userNotFoundMsg });
       } else {
         next();
-        // res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
       }
     });
 };
@@ -129,8 +116,6 @@ const updateUserAvatar = (req, res, next) => {
 const getCurrentUser = (req, res, next) => {
   if (!ObjectID.isValid(req.user._id)) {
     throw new BadRequestError(invalidDataMsg);
-    // res.status(BAD_REQUEST).send({ message: invalidDataMsg });
-    // return;
   }
   User.findById(req.user._id)
     .orFail(() => new Error(userNotFoundMsg))
@@ -138,10 +123,8 @@ const getCurrentUser = (req, res, next) => {
     .catch((err) => {
       if (err.message === userNotFoundMsg) {
         next(new NotFoundError(userNotFoundMsg));
-        // res.status(NOT_FOUND).send({ message: userNotFoundMsg });
       } else {
         next();
-        // res.status(INT_SERVER_ERROR).send({ message: intServerErrorMsg });
       }
     });
 };
@@ -157,7 +140,7 @@ const login = (req, res, next) => {
     .select('+password')
     .then((user) => {
       if (!user) {
-        throw new BadRequestError(invalidLoginData);
+        throw new AuthorizationError(invalidLoginData);
       }
       bcrypt.compare(password, user.password)
         // eslint-disable-next-line consistent-return
@@ -168,25 +151,17 @@ const login = (req, res, next) => {
               'secret-key',
               { expiresIn: '7d' },
             );
-            // res.cookie('jwt', token, {
-            //   maxAge: 3600000,
-            //   httpOnly: true,
-            // })
-              // .end();
             res.send({ token });
           } else {
             throw new BadRequestError(invalidLoginData);
-            // return Promise.reject(new Error(invalidLoginData));
           }
         })
         .catch(() => {
           next(new BadRequestError(invalidLoginData));
-          // res.status(UNAUTHORIZED).send({ message: invalidLoginData });
         });
     })
     .catch(() => {
       next(new BadRequestError(invalidLoginData));
-      // res.status(UNAUTHORIZED).send({ message: invalidLoginData });
     });
 };
 
