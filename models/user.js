@@ -2,7 +2,6 @@
 /* eslint-disable space-before-function-paren */
 /* eslint-disable object-shorthand */
 const mongoose = require('mongoose');
-// const { regExpLink } = require('../utils/constants');
 
 const userSchema = new mongoose.Schema({
   name: {

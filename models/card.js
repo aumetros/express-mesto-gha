@@ -1,7 +1,6 @@
 /* eslint-disable func-names */
 /* eslint-disable object-shorthand */
 const mongoose = require('mongoose');
-// const { regExpLink } = require('../utils/constants');
 
 const cardSchema = new mongoose.Schema({
   name: {
