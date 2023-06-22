@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const router = require('./routes');
 const handleErrors = require('./middlewares/handleErrors');
 
@@ -12,6 +13,13 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
 app.use(helmet());
 
 app.use(express.json());
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+});
+
+app.use(limiter);
 
 app.use(router);
 
