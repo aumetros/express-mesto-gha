@@ -1,6 +1,7 @@
 /* eslint-disable func-names */
 /* eslint-disable object-shorthand */
 const mongoose = require('mongoose');
+const { regExpLink } = require('../utils/constants');
 
 const cardSchema = new mongoose.Schema({
   name: {
@@ -14,7 +15,7 @@ const cardSchema = new mongoose.Schema({
     required: true,
     validate: {
       validator: function (v) {
-        return /https*:\/\/[a-zA-Z0-9\-\._~:\/?#\[\]@!$&'\(\)*\+,;=]+#*/.test(v);
+        return regExpLink.test(v);
       },
     },
   },
