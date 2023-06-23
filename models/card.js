@@ -1,6 +1,8 @@
 /* eslint-disable func-names */
+/* eslint-disable space-before-function-paren */
 /* eslint-disable object-shorthand */
 const mongoose = require('mongoose');
+const { linkReg } = require('../utils/constants');
 
 const cardSchema = new mongoose.Schema({
   name: {
@@ -13,8 +15,8 @@ const cardSchema = new mongoose.Schema({
     type: String,
     required: true,
     validate: {
-      validator: function (v) {
-        return /https*:\/\/[a-zA-Z0-9\-\._~:\/?#\[\]@!$&'\(\)*\+,;=]+\.[a-zA-Z0-9\-\._~:\/?#\[\]@!$&'\(\)*\+,;=]+#*/.test(v);
+      validator: function(v) {
+        return linkReg.test(v);
       },
     },
   },
