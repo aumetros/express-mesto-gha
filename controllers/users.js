@@ -12,11 +12,12 @@ const {
   ExistEmailError,
   AuthorizationError,
 } = require('../utils/errors');
-
-const invalidDataMsg = 'Переданы некорректные данные пользователя.';
-const userNotFoundMsg = 'Пользователь не найден.';
-const invalidLoginData = 'Неправильные почта или пароль.';
-const existEmailMsg = 'Пользователь с таким email уже зарегистрирован.';
+const {
+  invalidUserDataMsg,
+  userNotFoundMsg,
+  invalidLoginData,
+  existEmailMsg,
+} = require('../utils/constants');
 
 const getUsers = (req, res, next) => {
   User.find({})
@@ -26,7 +27,7 @@ const getUsers = (req, res, next) => {
 
 const getUser = (req, res, next) => {
   if (!ObjectID.isValid(req.params.userId)) {
-    throw new BadRequestError(invalidDataMsg);
+    throw new BadRequestError(invalidUserDataMsg);
   }
   User.findById(req.params.userId)
     .orFail(() => new Error(userNotFoundMsg))
@@ -53,7 +54,7 @@ const createUser = (req, res, next) => {
       .then((user) => res.status(201).send({ data: user.toJSON() }))
       .catch((err) => {
         if (err.name === 'ValidationError') {
-          next(new BadRequestError(invalidDataMsg));
+          next(new BadRequestError(invalidUserDataMsg));
         } else if (err.code === 11000) {
           next(new ExistEmailError(existEmailMsg));
         } else {
@@ -61,14 +62,14 @@ const createUser = (req, res, next) => {
         }
       });
   } else {
-    next(new BadRequestError(invalidDataMsg));
+    next(new BadRequestError(invalidUserDataMsg));
   }
 };
 
 const updateUserInfo = (req, res, next) => {
   const { name, about } = req.body;
   if (!ObjectID.isValid(req.user._id)) {
-    throw new BadRequestError(invalidDataMsg);
+    throw new BadRequestError(invalidUserDataMsg);
   }
   User.findByIdAndUpdate(
     req.user._id,
@@ -91,7 +92,7 @@ const updateUserInfo = (req, res, next) => {
 const updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
   if (!ObjectID.isValid(req.user._id) || !avatar) {
-    throw new BadRequestError(invalidDataMsg);
+    throw new BadRequestError(invalidUserDataMsg);
   }
   User.findByIdAndUpdate(
     req.user._id,
@@ -111,7 +112,7 @@ const updateUserAvatar = (req, res, next) => {
 
 const getCurrentUser = (req, res, next) => {
   if (!ObjectID.isValid(req.user._id)) {
-    throw new BadRequestError(invalidDataMsg);
+    throw new BadRequestError(invalidUserDataMsg);
   }
   User.findById(req.user._id)
     .orFail(() => new Error(userNotFoundMsg))

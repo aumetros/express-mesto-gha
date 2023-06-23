@@ -4,10 +4,7 @@ const Card = require('../models/card');
 const ObjectID = mongoose.Types.ObjectId;
 
 const { BadRequestError, NotFoundError, ForbiddenError } = require('../utils/errors');
-
-const invalidDataMsg = 'Переданы некорректные данные карточки.';
-const cardNotFoundMsg = 'Карточка не найдена.';
-const forbiddenErrorMsg = 'У вас нет прав на этой действие.';
+const { invalidCardDataMsg, cardNotFoundMsg, forbiddenErrorMsg } = require('../utils/constants');
 
 const getCards = (req, res, next) => {
   Card.find({})
@@ -21,7 +18,7 @@ const createCard = (req, res, next) => {
     .then((card) => res.status(201).send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequestError(invalidDataMsg));
+        next(new BadRequestError(invalidCardDataMsg));
       } else {
         next();
       }
@@ -30,7 +27,7 @@ const createCard = (req, res, next) => {
 
 const deleteCard = (req, res, next) => {
   if (!ObjectID.isValid(req.params.cardId)) {
-    throw new BadRequestError(invalidDataMsg);
+    throw new BadRequestError(invalidCardDataMsg);
   }
   Card.findById(req.params.cardId)
     .orFail(() => new Error(cardNotFoundMsg))
@@ -52,7 +49,7 @@ const deleteCard = (req, res, next) => {
 
 const likeCard = (req, res, next) => {
   if (!ObjectID.isValid(req.params.cardId)) {
-    throw new BadRequestError(invalidDataMsg);
+    throw new BadRequestError(invalidCardDataMsg);
   }
   Card.findByIdAndUpdate(
     req.params.cardId,
@@ -72,7 +69,7 @@ const likeCard = (req, res, next) => {
 
 const dislikeCard = (req, res, next) => {
   if (!ObjectID.isValid(req.params.cardId)) {
-    throw new BadRequestError(invalidDataMsg);
+    throw new BadRequestError(invalidCardDataMsg);
   }
   Card.findByIdAndUpdate(
     req.params.cardId,
